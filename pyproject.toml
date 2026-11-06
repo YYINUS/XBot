@@ -1,0 +1,25 @@
+[project]
+name = "xbot"
+version = "0.1.0"
+description = "Agentic crypto research -> X posting pipeline (sourcing, curation, drafting, critique, approval, publishing)"
+requires-python = ">=3.10"
+dependencies = [
+  "anthropic>=2.6.0",
+  "tweepy>=4.14",
+  "feedparser>=6.0",
+  "requests>=2.31",
+  "pyyaml>=6.0",
+  "pydantic>=2.6",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+xbot = "xbot.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["xbot*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

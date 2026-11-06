@@ -1,0 +1,39 @@
+# Manually learn your voice from your X posts and commit config/persona.md + config/exemplars.json.
+# Needs X read access (bearer token or user keys). Alternatively run `xbot profile --archive tweets.js` locally.
+name: xbot-profile
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "how many of your recent posts to analyze"
+        default: "400"
+
+permissions:
+  contents: write
+
+jobs:
+  profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+      X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python -m xbot profile --limit ${{ github.event.inputs.limit }}
+      - name: Commit voice guide
+        run: |
+          git config user.name "xbot"
+          git config user.email "xbot@users.noreply.github.com"
+          git add config/persona.md config/exemplars.json config/persona.seed.md || true
+          git diff --cached --quiet || git commit -m "Update voice guide from X posts"
+          git push

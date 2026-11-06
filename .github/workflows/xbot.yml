@@ -1,0 +1,57 @@
+# Runs the bot on a schedule. Every run = `xbot tick`, which:
+#   1) applies your Telegram approvals, 2) runs scout/collect/curate/write when due (see cadence in
+#   config/settings.yaml), 3) posts the next approved draft if a posting slot is open, 4) refreshes metrics.
+# State (SQLite) is carried between runs with actions/cache.
+name: xbot
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"     # GitHub may delay scheduled runs; approvals apply on the next run
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "xbot command (tick | run | run --scout | publish | status | drafts | metrics | doctor --live)"
+        default: "tick"
+        required: true
+
+concurrency:
+  group: xbot-state
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ vars.XBOT_ENABLED == 'true' || github.event_name == 'workflow_dispatch' }}
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+      X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      XBOT_STATE_DIR: state
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Restore state
+        uses: actions/cache/restore@v4
+        with:
+          path: state
+          key: xbot-state-${{ github.run_id }}
+          restore-keys: xbot-state-
+      - name: Run
+        run: python -m xbot ${{ github.event.inputs.command || 'tick' }}
+      - name: Save state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: state
+          key: xbot-state-${{ github.run_id }}-${{ github.run_attempt }}

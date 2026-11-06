@@ -1,0 +1,95 @@
+# Sources the collectors read every `cadence.collect` minutes.
+# weight (0.5-2.0) nudges the curator; tags help it map items to your themes.
+# Themes: rwa, rwa_yield, defi, depin, protocol, dev, research, markets, regulation
+
+rss:
+  # --- news (broad, high volume) ---
+  - {name: The Block,     url: "https://www.theblock.co/rss.xml",                  tags: [markets, defi], weight: 1.0}
+  - {name: CoinDesk,      url: "https://www.coindesk.com/arc/outboundfeeds/rss/",  tags: [markets, regulation], weight: 0.9}
+  - {name: DL News,       url: "https://www.dlnews.com/arc/outboundfeeds/rss/",    tags: [defi, regulation], weight: 1.1}
+  - {name: Blockworks,    url: "https://blockworks.co/feed",                       tags: [markets, defi], weight: 1.0}
+  - {name: The Defiant,   url: "https://thedefiant.io/api/feed",                   tags: [defi, rwa], weight: 1.2}
+  - {name: Decrypt,       url: "https://decrypt.co/feed",                          tags: [markets], weight: 0.7}
+  - {name: Cointelegraph, url: "https://cointelegraph.com/rss",                    tags: [markets], weight: 0.6}
+  - {name: Unchained,     url: "https://unchainedcrypto.com/feed/",                tags: [defi, markets], weight: 1.0}
+  - {name: Bankless,      url: "https://www.bankless.com/rss/feed",                tags: [defi, protocol], weight: 1.0}
+  # --- research / dev (low volume, high signal) ---
+  - {name: Vitalik,             url: "https://vitalik.eth.limo/feed.xml",        tags: [research, protocol], weight: 1.8}
+  - {name: Ethereum Foundation, url: "https://blog.ethereum.org/feed.xml",       tags: [dev, protocol], weight: 1.5}
+  - {name: ethresear.ch,        url: "https://ethresear.ch/latest.rss",          tags: [research, dev], weight: 1.4}
+  - {name: Ethereum Magicians,  url: "https://ethereum-magicians.org/latest.rss", tags: [dev, protocol], weight: 1.2}
+  - {name: a16z crypto,         url: "https://a16zcrypto.com/feed/",             tags: [research], weight: 1.3}
+  # --- governance forums (protocol changes often land here first) ---
+  - {name: Sky (Maker) forum, url: "https://forum.makerdao.com/latest.rss",       tags: [defi, rwa, protocol], weight: 1.3}
+  - {name: Uniswap gov,       url: "https://gov.uniswap.org/latest.rss",          tags: [defi, protocol], weight: 1.0}
+  - {name: Arbitrum forum,    url: "https://forum.arbitrum.foundation/latest.rss", tags: [protocol], weight: 0.9}
+  - {name: Lido research,     url: "https://research.lido.fi/latest.rss",         tags: [defi, protocol], weight: 1.0}
+
+# GitHub releases = "crypto development" signal. Only notable (non-prerelease) releases are kept.
+github_releases:
+  - ethereum/go-ethereum
+  - paradigmxyz/reth
+  - anza-xyz/agave
+  - foundry-rs/foundry
+  - OffchainLabs/nitro
+  - ethereum-optimism/optimism
+  - celestiaorg/celestia-node
+  - Layr-Labs/eigenlayer-contracts
+  - helium/helium-program-library
+  - aave-dao/aave-v3-origin
+  - morpho-org/morpho-blue
+  - pendle-finance/pendle-core-v2-public
+
+defillama:
+  enabled: true
+  # TVL movers in these categories become "data" items
+  categories: [RWA, DePIN, Lending, CDP, Basis Trading, Yield, Liquid Restaking, Restaking, Stablecoin Issuer, Treasury Manager]
+  min_tvl_usd: 50000000
+  tvl_move_pct_7d: 15          # flag protocols whose 7d TVL change exceeds this (abs)
+  # RWA yield board (tokenized treasuries, private credit, etc.)
+  rwa_yields:
+    enabled: true
+    min_tvl_usd: 20000000
+    top_n: 12
+  stablecoins:
+    enabled: true
+    move_pct_7d: 5
+
+coingecko:
+  trending: true               # trending coins/categories (filtered to your themes by the curator)
+
+# Accounts whose posts you may want to quote / reply to. Needs X read access (paid or credit-based).
+# These are suggestions - edit freely. Verify each handle before enabling.
+x_watch:
+  enabled: false
+  max_posts_per_account: 5
+  min_likes: 50
+  accounts:
+    - VitalikButerin
+    - DefiLlama
+    - rwa_xyz
+    - tokenterminal
+    - MessariCrypto
+    - OndoFinance
+    - centrifuge
+    - SkyEcosystem
+    - ethena_labs
+    - pendle_fi
+    - MorphoLabs
+    - aave
+    - eigenlayer
+    - helium
+    - ethereum
+
+# Claude web-search scout: what to hunt for beyond the feeds.
+scout:
+  enabled: true
+  max_searches: 12
+  focus:
+    - "tokenized treasuries / money-market funds onchain: new launches, AUM moves, new chains (BUIDL, BENJI, USYC, USTB, OUSG)"
+    - "RWA private credit and structured yield: defaults, new vaults, yield changes (Maple, Centrifuge, Goldfinch, Figure)"
+    - "DePIN: revenue / usage milestones, token-model changes, new networks (Helium, Hivemapper, Render, io.net, Grass, Akash)"
+    - "DeFi protocol upgrades, new primitives, governance votes with real economic impact"
+    - "Ethereum / Solana / L2 core development: hard forks, EIPs, client releases, research posts"
+    - "Exploits and post-mortems (only with credible confirmation)"
+    - "Regulation that directly affects stablecoins, tokenization, or DeFi"
